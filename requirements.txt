@@ -1,0 +1,13 @@
+pytest
+snowflake-connector-python[pandas]
+dbt-core
+dbt-snowflake
+sqlfluff
+python-dotenv
+pandas
+minio
+pyarrow
+requests
+duckdb
+
+streamlit
