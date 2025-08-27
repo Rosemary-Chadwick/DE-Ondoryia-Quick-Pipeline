@@ -55,36 +55,13 @@ def load_data_from_snowflake():
             warehouse=os.getenv('SNOWFLAKE_WAREHOUSE'),
             role=os.getenv('SNOWFLAKE_ROLE')
         ) as conn:
-            check_columns_query = """
-            SELECT * FROM gold.ondoryia LIMIT 1
-            """
-            possible_queries = [
-                # Quoted, case-sensitive (matches your actual column names)
-                """SELECT \"Region_ID\", \"Full_Name\", \"Current_Faction\", \"POPULATION_COUNT\", \"RULING_COUNT\", \"COMMON_COUNT\" FROM gold.ondoryia""",
-                # Original case
-                """SELECT Region_ID, Full_Name, Current_Faction, POPULATION_COUNT, RULING_COUNT, COMMON_COUNT FROM gold.ondoryia""",
-                # All uppercase
-                """SELECT REGION_ID, FULL_NAME, CURRENT_FACTION, POPULATION_COUNT, RULING_COUNT, COMMON_COUNT FROM gold.ondoryia""",
-                # All lowercase
-                """SELECT region_id, full_name, current_faction, population_count, ruling_count, common_count FROM gold.ondoryia""",
-            ]
-            for i, query in enumerate(possible_queries):
-                try:
-                    df = pd.read_sql(query, conn)
-                    return df
-                except Exception as query_error:
-                    if i == 0:  # On first failure, show what columns exist
-                        try:
-                            sample_df = pd.read_sql(check_columns_query, conn)
-                            st.error(
-                                f"Column name mismatch. Available columns in your table: {list(sample_df.columns)}")
-                        except Exception as e:
-                            st.error(
-                                f"Failed to fetch columns from table: {e}")
-                    st.warning(f"Query attempt {i+1} failed: {query_error}")
-                    continue
-            raise Exception(
-                "Could not find matching column names in gold.ondoryia table.")
+            query = """SELECT \"Region_ID\", \"Full_Name\", \"Current_Faction\", \"POPULATION_COUNT\", \"RULING_COUNT\", \"COMMON_COUNT\" FROM gold.ondoryia"""
+            try:
+                df = pd.read_sql(query, conn)
+                return df
+            except Exception as query_error:
+                st.error(f"Query failed: {query_error}")
+                raise
     except Exception as e:
         st.error(f"Error connecting to Snowflake or loading data: {e}")
     return pd.DataFrame({
